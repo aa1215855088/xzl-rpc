@@ -17,7 +17,7 @@ import java.util.Objects;
 @Component
 public @interface RpcServer {
 
-    Class<?> serviceInterface() default Objects.class;
+    Class<?> serviceInterface();
 
     String serviceVersion() default "1.0.0";
 }

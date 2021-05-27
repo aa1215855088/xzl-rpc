@@ -1,7 +1,10 @@
 package com.xzl.rpc.provider;
 
+import com.xzl.rpc.codec.RpcDecoder;
+import com.xzl.rpc.codec.RpcEncoder;
 import com.xzl.rpc.common.RpcServiceHelper;
 import com.xzl.rpc.common.ServiceMeta;
+import com.xzl.rpc.handler.RpcRequestHandler;
 import com.xzl.rpc.provider.annotation.RpcServer;
 import com.xzl.rpc.registry.RegistryService;
 import io.netty.bootstrap.ServerBootstrap;
@@ -56,7 +59,10 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-
+                            socketChannel.pipeline()
+                                    .addLast(new RpcDecoder())
+                                    .addLast(new RpcEncoder())
+                                    .addLast(new RpcRequestHandler(rpcServiceMap));
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);

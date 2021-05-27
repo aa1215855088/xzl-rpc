@@ -44,7 +44,7 @@ public class RpcDecoder extends ByteToMessageDecoder {
         byte serializeType = byteBuf.readByte();
         byte msgType = byteBuf.readByte();
         byte status = byteBuf.readByte();
-        byte requestId = byteBuf.readByte();
+        long requestId = byteBuf.readLong();
 
         int dataLength = byteBuf.readInt();
         if (byteBuf.readableBytes() < dataLength) {

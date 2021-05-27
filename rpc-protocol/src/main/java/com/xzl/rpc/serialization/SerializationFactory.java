@@ -12,7 +12,7 @@ public class SerializationFactory {
             case HESSIAN:
                 return new HessianSerialization();
             case JSON:
-                return new JsonSerialization();
+//                return new JsonSerialization();
             default:
                 throw new IllegalArgumentException("serialization type is illegal, " + serializationType);
         }

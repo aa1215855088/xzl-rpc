@@ -4,6 +4,7 @@ import com.xzl.rpc.registry.RegistryFactory;
 import com.xzl.rpc.registry.RegistryService;
 import com.xzl.rpc.registry.RegistryType;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Proxy;
 
@@ -21,7 +22,7 @@ public class RpcReferenceBean implements FactoryBean<Object> {
 
     private String registryAddr;
 
-    private long time;
+    private long timeout;
 
     private Object object;
 
@@ -35,7 +36,13 @@ public class RpcReferenceBean implements FactoryBean<Object> {
         return interfaceClass;
     }
 
-    public void init(){
+    public void init() throws Exception {
+        RegistryService instance = RegistryFactory.getInstance(this.registryAddr, RegistryType.valueOf(this.registryType));
+        this.object = Proxy.newProxyInstance(
+                interfaceClass.getClassLoader(),
+                new Class<?>[]{interfaceClass},
+                new RpcInvokerProxy(serviceVersion, timeout, instance)
+        );
     }
 
     public void setInterfaceClass(Class<?> interfaceClass) {
@@ -54,8 +61,8 @@ public class RpcReferenceBean implements FactoryBean<Object> {
         this.registryAddr = registryAddr;
     }
 
-    public void setTime(long time) {
-        this.time = time;
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
     }
 
     public void setObject(Object object) {

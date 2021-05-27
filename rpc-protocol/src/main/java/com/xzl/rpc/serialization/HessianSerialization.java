@@ -2,7 +2,6 @@ package com.xzl.rpc.serialization;
 
 import com.caucho.hessian.io.HessianSerializerInput;
 import com.caucho.hessian.io.HessianSerializerOutput;
-import com.sun.xml.internal.ws.encoding.soap.SerializationException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,7 +28,8 @@ public class HessianSerialization implements RpcSerialization {
             hessianOutput.flush();
             body = os.toByteArray();
         } catch (Exception e) {
-            throw new SerializationException(e);
+            //
+            return null;
         }
         return body;
     }
@@ -46,7 +46,8 @@ public class HessianSerialization implements RpcSerialization {
             HessianSerializerInput hessianSerializerInput = new HessianSerializerInput(is);
             result = (T) hessianSerializerInput.readObject(clz);
         } catch (IOException e) {
-            throw new SerializationException(e);
+            //
+            return null;
         }
         return result;
     }

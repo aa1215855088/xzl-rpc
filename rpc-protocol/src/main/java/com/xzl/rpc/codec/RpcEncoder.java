@@ -33,7 +33,7 @@ public class RpcEncoder extends MessageToByteEncoder<RpcProtocol<Object>> {
         byteBuf.writeByte(header.getSerialization());
         byteBuf.writeByte(header.getMsgType());
         byteBuf.writeByte(header.getStatus());
-        byteBuf.writeByte(header.getRequestId());
+        byteBuf.writeLong(header.getRequestId());
         RpcSerialization rpcSerialization = SerializationFactory.getRpcSerialization(header.getSerialization());
         byte[] data = rpcSerialization.serialize(msg.getBody());
         byteBuf.writeInt(data.length);

@@ -12,4 +12,19 @@ public class EurekaRegistryServiceImpl implements RegistryService {
     public void register(ServiceMeta serviceMeta) {
 
     }
+
+    @Override
+    public void unRegister(ServiceMeta serviceMeta) {
+
+    }
+
+    @Override
+    public ServiceMeta discovery(String serviceName, int invokerHashCode) {
+        return null;
+    }
+
+    @Override
+    public void destroy() {
+
+    }
 }

@@ -10,7 +10,7 @@ public class RegistryFactory {
 
     private static volatile RegistryService registryService;
 
-    public static RegistryService getInstance(String registryAddr, RegistryType type) {
+    public static RegistryService getInstance(String registryAddr, RegistryType type) throws Exception {
         if (Objects.isNull(registryService)) {
             synchronized (RegistryService.class) {
                 if (Objects.isNull(registryService)) {
@@ -19,7 +19,7 @@ public class RegistryFactory {
                             registryService = new EurekaRegistryServiceImpl();
                             break;
                         case ZOOKEEPER:
-                            registryService = new ZookeeperRegistryServiceImpl();
+                            registryService = new ZookeeperRegistryServiceImpl(registryAddr);
                             break;
                         default:
                             return null;

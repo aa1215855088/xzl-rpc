@@ -22,7 +22,7 @@ public class RpcProviderAutoConfiguration {
     private RpcProperties rpcProperties;
 
     @Bean
-    public RpcProvider init() {
+    public RpcProvider init() throws Exception {
         RegistryType type = RegistryType.valueOf(rpcProperties.getRegistryType());
         RegistryService registryService = RegistryFactory.getInstance(rpcProperties.getRegistryAddr(), type);
         return new RpcProvider(rpcProperties.getServicePort(), registryService);

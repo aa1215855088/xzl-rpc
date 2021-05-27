@@ -14,6 +14,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -26,6 +27,7 @@ import java.util.Map;
  * @date 2021-05-24 21:59
  **/
 @Slf4j
+@Component
 public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanClassLoaderAware, BeanFactoryPostProcessor {
 
     private ApplicationContext context;
@@ -68,7 +70,7 @@ public class RpcConsumerPostProcessor implements ApplicationContextAware, BeanCl
     private void parseRpcReference(Field field) {
         RpcReference annotation = AnnotationUtils.getAnnotation(field, RpcReference.class);
         if (annotation != null) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RpcReference.class);
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RpcReferenceBean.class);
             builder.setInitMethodName(RpcConstants.INIT_METHOD_NAME);
             builder.addPropertyValue("interfaceClass", field.getType());
             builder.addPropertyValue("serviceVersion", annotation.serviceVersion());
