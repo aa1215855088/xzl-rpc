@@ -30,6 +30,7 @@ public class RpcInvokerProxy implements InvocationHandler {
 
     private final RegistryService registryService;
 
+    private final RpcConsumer rpcConsumer = new RpcConsumer();
 
     public RpcInvokerProxy(String serviceVersion, long timeout, RegistryService registryService) {
         this.serviceVersion = serviceVersion;
@@ -58,7 +59,6 @@ public class RpcInvokerProxy implements InvocationHandler {
         rpcRequest.setParams(args);
         protocol.setBody(rpcRequest);
 
-        RpcConsumer rpcConsumer = new RpcConsumer();
         RpcFuture<RpcResponse> future = new RpcFuture<>(new DefaultPromise<>(new DefaultEventLoop()), timeout);
         RpcRequestHolder.REQUEST_MAP.put(requestId, future);
         rpcConsumer.sendRequest(protocol, registryService);

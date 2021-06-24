@@ -19,9 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.cglib.reflect.FastClass;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -39,7 +39,9 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
 
     private final RegistryService registryService;
 
-    private final Map<String, Object> rpcServiceMap = new HashMap<>();
+    private final Map<String, Object> rpcServiceMap = new HashMap<>(128);
+
+    private final Map<String, FastClass> fastClassMap = new HashMap<>(128);
 
     public RpcProvider(int serverPort, RegistryService registryService) {
         this.serverPort = serverPort;
@@ -62,7 +64,7 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
                             socketChannel.pipeline()
                                     .addLast(new RpcDecoder())
                                     .addLast(new RpcEncoder())
-                                    .addLast(new RpcRequestHandler(rpcServiceMap));
+                                    .addLast(new RpcRequestHandler(rpcServiceMap, fastClassMap));
                         }
                     })
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
@@ -97,6 +99,7 @@ public class RpcProvider implements InitializingBean, BeanPostProcessor {
                 if (!rpcServiceMap.containsKey(key)) {
                     registryService.register(serviceMeta);
                     rpcServiceMap.put(key, bean);
+                    fastClassMap.put(key, FastClass.create(bean.getClass()));
                 }
             } catch (Exception e) {
                 log.error("service register fail data:{}", serviceMeta);

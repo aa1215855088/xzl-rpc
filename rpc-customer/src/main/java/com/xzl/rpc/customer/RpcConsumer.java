@@ -10,14 +10,14 @@ import com.xzl.rpc.handler.RpcResponseHandler;
 import com.xzl.rpc.protocol.RpcProtocol;
 import com.xzl.rpc.registry.RegistryService;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author xzl
@@ -26,12 +26,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RpcConsumer {
 
-    private final Bootstrap bootstrap;
+    private final Bootstrap bootstrap = new Bootstrap();
 
     private final EventLoopGroup eventLoopGroup;
 
+    private final Map<String, Channel> channelMap = new HashMap<>();
+
+    private final Object lock = new Object();
+
     public RpcConsumer() {
-        bootstrap = new Bootstrap();
         eventLoopGroup = new NioEventLoopGroup(4);
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
@@ -52,23 +55,31 @@ public class RpcConsumer {
         int invokerHashCode = params.length > 0 ? params[0].hashCode() : serviceKey.hashCode();
         ServiceMeta serviceMetaData = registryService.discovery(serviceKey, invokerHashCode);
         if (serviceMetaData != null) {
-            ChannelFuture future = bootstrap.connect(serviceMetaData.getServiceAddr(), serviceMetaData.getServicePort()).sync();
-            future.addListener((ChannelFutureListener) channelFuture -> {
+            Channel channel = getChannel(serviceMetaData.getServiceAddr(), serviceMetaData.getServicePort());
+            channel.writeAndFlush(protocol).addListener((ChannelFutureListener) channelFuture -> {
                 if (channelFuture.isSuccess()) {
-                    log.info("connect rpc server {} on port {} success.", serviceMetaData.getServiceAddr(), serviceMetaData.getServicePort());
-                } else {
-                    log.error("connect rpc server {} on port {} failed.", serviceMetaData.getServiceAddr(), serviceMetaData.getServicePort());
-                    future.cause().printStackTrace();
-                    eventLoopGroup.shutdownGracefully();
-                }
-            });
-            future.channel().writeAndFlush(protocol).addListener((ChannelFutureListener) channelFuture -> {
-                if (channelFuture.isSuccess()) {
-                    log.error("send success");
+                    log.info("send success");
                 } else {
                     log.error("send error");
                 }
             });
+        }
+    }
+
+    private Channel getChannel(String serviceAddr, int servicePort) throws InterruptedException {
+        Channel channel = channelMap.get(serviceAddr + servicePort);
+        if (channel != null && channel.isActive()) {
+            return channel;
+        }
+        synchronized (this.lock) {
+            Channel cn = channelMap.get(serviceAddr + servicePort);
+            if (cn != null && cn.isActive()) {
+                return cn;
+            }
+            ChannelFuture future = bootstrap.connect(serviceAddr, servicePort).sync();
+            Channel newCn = future.channel();
+            channelMap.put(serviceAddr + servicePort, newCn);
+            return newCn;
         }
     }
 }

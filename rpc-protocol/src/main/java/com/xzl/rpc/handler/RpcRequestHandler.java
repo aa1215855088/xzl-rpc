@@ -4,8 +4,6 @@ import com.xzl.rpc.common.RpcRequest;
 import com.xzl.rpc.common.RpcResponse;
 import com.xzl.rpc.common.RpcServiceHelper;
 import com.xzl.rpc.protocol.*;
-import com.xzl.rpc.serialization.SerializationTypeEnum;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -24,8 +22,12 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcProtocol<R
 
     private final Map<String, Object> rpcServiceMap;
 
-    public RpcRequestHandler(Map<String, Object> rpcServiceMap) {
+
+    private final Map<String, FastClass> fastClassMap;
+
+    public RpcRequestHandler(Map<String, Object> rpcServiceMap, Map<String, FastClass> fastClassMap) {
         this.rpcServiceMap = rpcServiceMap;
+        this.fastClassMap = fastClassMap;
     }
 
 
@@ -68,7 +70,7 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcProtocol<R
         Class<?>[] parameterTypes = body.getParameterTypes();
         Object[] params = body.getParams();
 
-        FastClass fastClass = FastClass.create(serviceClass);
+        FastClass fastClass = fastClassMap.get(serviceKey);
 
         int index = fastClass.getIndex(methodName, parameterTypes);
 
